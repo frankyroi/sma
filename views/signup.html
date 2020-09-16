@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SMA</title>
+    <link rel="stylesheet" href="./mvp.css" />
+
+    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-app.js" defer></script>
+      <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-auth.js" defer></script>
+      <script src="https://cdn.jsdelivr.net/npm/js-cookie@rc/dist/js.cookie.min.js" defer></script>
+      <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-firestore.js" defer></script>
+
+      <script>
+      window.addEventListener("DOMContentLoaded", () => {
+        const firebaseConfig = {
+          apiKey: "AIzaSyBCuQKw0Vh9xN7Cjrv9W1F8XmCNQBHV40o",
+          authDomain: "acumen-sma.firebaseapp.com",
+          databaseURL: "https://acumen-sma.firebaseio.com",
+          projectId: "acumen-sma",
+          storageBucket: "acumen-sma.appspot.com",
+          messagingSenderId: "208811055357",
+          appId: "1:208811055357:web:0b6a3bd0451e0a240c4694",
+          measurementId: "G-7N6PY2ZBLT"
+        };
+
+        var app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        firebase.auth().setPersistence(firebase.auth.Auth.Persistence.NONE);
+
+        
+
+        document
+          .getElementById("signup")
+          .addEventListener("submit", (event) => {
+            event.preventDefault();
+            const firstname = event.target.first_name.value;
+            const lastname = event.target.last_name.value;
+            const username = event.target.username.value;
+            const dob = event.target.dob.value;
+            const gender = event.target.gender.value;
+            const email = event.target.email.value;
+            const password = event.target.password.value;
+
+            
+            firebase
+              .auth()
+              .createUserWithEmailAndPassword(email, password)
+              .then(({ user }) => {
+                return user.getIdToken().then((idToken) => {
+                  return fetch("/sessionLogin", {
+                    method: "POST",
+                    headers: {
+                      Accept: "application/json",
+                      "Content-Type": "application/json",
+                      "CSRF-Token": Cookies.get("XSRF-TOKEN"),
+                    },
+                    body: JSON.stringify({ idToken }),
+                  });
+                });
+              })
+              .then(() => {
+                db.collection("student").add({
+                  firstname: firstname,
+                  lastname: lastname,
+                  username: username,
+                  dob: dob,
+                  gender: gender,
+                  email: email,
+                  
+                })
+              })
+              .then(() => {
+                return firebase.auth().signOut();
+              })
+              .then(() => {
+                window.location.assign("/profile");
+              });
+            return false;
+          });
+        });
+      </script>
+  </head>
+  <body>
+    <main>
+      <section>
+        <form id="signup">
+          <label>First Name</label>
+          <input type="text" name="first_name" required/>
+          <label>Last Name</label>
+          <input type="text" name="last_name" required/>
+          <label>Email</label>
+          <input type="email" name="email" required/>
+          <label>Username</label>
+          <input type="text" name="username" />
+          <label>Password</label>
+          <input type="password" name="password" required/>
+          <label>Date of birth</label>
+          <input type="text" name="dob" required/>
+          <label>Gender</label>
+          <select name="gender">
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+          </select>
+          <button>Sign up</button>
+        </form>
+        <a href="/profile">profile </a>
+        <a href="/login">login </a>
+        <a href="/signup">Register </a>
+      </section>
+
+      
+    </main>
+  </body>
+</html>
